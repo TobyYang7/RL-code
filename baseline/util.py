@@ -31,15 +31,15 @@ def asym_adj(adj):
 
 def load_data(data_name, ratio=[0.8, 0.1]):
     if data_name == 'US':
-        adj_mx = np.load('baseline/udata/adj_mx.npy')
-        od_power = np.load('baseline/udata/od_pair.npy')
+        adj_mx = np.load('udata/adj_mx.npy')
+        od_power = np.load('udata/od_pair.npy')
         od_power = od_power/(1.5*od_power.max())
         od_power[od_power < 0.1] = 0
         for i in range(70):
             od_power[i, i] = 1
         adj = [asym_adj(adj_mx), asym_adj(od_power), asym_adj(od_power.T)]
-        data = np.load('baseline/udata/udelay.npy')
-        wdata = np.load('baseline/udata/weather2016_2021.npy')
+        data = np.load('udata/udelay.npy')
+        wdata = np.load('udata/weather2016_2021.npy')
     if data_name == 'China':
         adj_mx = np.load('cdata/dist_mx.npy')
         od_power = np.load('cdata/od_mx.npy')
