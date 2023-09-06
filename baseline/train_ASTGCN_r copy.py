@@ -18,7 +18,7 @@ def store_result(yhat,label,i):
 
 def main(delay_index = 1):
     # Read the configuration file
-    with open('configs_c.json', 'r') as f:
+    with open('RL-code/baseline/configs_u.json', 'r') as f:
         config = json.load(f)
 
     # Create an empty argparse Namespace object to store the configuration settings
@@ -108,5 +108,6 @@ def main(delay_index = 1):
     print(f"Error of ASTGCN in 3-step: ({round(amae3[best_ep],3)}, {round(armse3[best_ep],3)}, {round(amape3[best_ep],3)})")
     print(f"Error of ASTGCN in 6-step: ({round(amae6[best_ep],3)}, {round(armse6[best_ep],3)}, {round(amape6[best_ep],3)})")
     print(f"Error of ASTGCN in 12-step: ({round(amae12[best_ep],3)}, {round(armse12[best_ep],3)}, {round(amape12[best_ep],3)})")
-if __name__ == "__main__":   
+if __name__ == "__main__":  
+    print("ASTGCN:") 
     main()  

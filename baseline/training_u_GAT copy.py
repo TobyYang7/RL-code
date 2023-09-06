@@ -17,7 +17,7 @@ def store_result(yhat,label,i):
     return metrics[0],metrics[2],metrics[1]
 
 def main(delay_index = 1):
-    with open('configs_c.json', 'r') as f:
+    with open('configs_u.json', 'r') as f:
         config = json.load(f)
 
     # Create an empty argparse Namespace object to store the configuration settings
@@ -111,4 +111,5 @@ def main(delay_index = 1):
     print(f"Error of GAT in 12-step: ({round(amae12[best_ep],3)}, {round(armse12[best_ep],3)}, {round(amape12[best_ep],3)})")
 
 if __name__ == '__main__':
+    print("GAT:")
     main()
