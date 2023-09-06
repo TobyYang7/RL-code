@@ -14,18 +14,8 @@ import pandas as pd
 # Read the configuration file
 
 
-<<<<<<< HEAD
 def main(delay_index = 1): #Select arr or dep
     with open('configs_u.json', 'r') as f:
-=======
-def store_result(yhat, label, i):
-    metrics = test_error(yhat[:, :, i], label[:, :, i])
-    return metrics[0], metrics[2], metrics[1]
-
-
-def main(delay_index=1):  # Select arr or dep
-    with open('baseline/configs_u.json', 'r') as f:
->>>>>>> 70e8c2116d876aac32cbe0727280332bd13b32e1
         config = json.load(f)
 
     # Create an empty argparse Namespace object to store the configuration settings
@@ -131,9 +121,5 @@ def main(delay_index=1):  # Select arr or dep
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     print("GRU:")
     main()
-=======
-    main()
->>>>>>> 70e8c2116d876aac32cbe0727280332bd13b32e1
