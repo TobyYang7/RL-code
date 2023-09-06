@@ -18,7 +18,7 @@ def store_result(yhat,label,i):
 
 def main(delay_index = 1):
     # Read the configuration file
-    with open('configs_c.json', 'r') as f:
+    with open('baseline/configs_u.json', 'r') as f:
         config = json.load(f)
 
     # Create an empty argparse Namespace object to store the configuration settings
