@@ -181,7 +181,7 @@ def var_predict_svr(np_, out_len=12, in_len=36, test_ratio=0.2, kernel='linear',
             if len(Y_train[i-in_len]) != out_len:
                 print(f"Anomaly at index {i}. Expected length {out_len}, but got {len(Y_train[i-in_len])}.")
         X_train, Y_train = np.array(X_train), np.array(Y_train)
-        svr_model = MultiOutputRegressor(SVR(kernel=kernel),n_jobs=-1)
+        svr_model = MultiOutputRegressor(SVR(kernel=kernel),n_jobs=-1) #todo: cpu
         svr_model.fit(X_train, Y_train)
         #print(f"Fit OK in {route}!")
         X_test, Y_test = [], []

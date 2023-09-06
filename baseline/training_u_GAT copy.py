@@ -57,6 +57,7 @@ def main(delay_index=1):
             trainw = torch.LongTensor(trainw).to(device)
             trainx = torch.index_select(torch.Tensor(
                 trainx), -1, torch.tensor([delay_index]))  # Select which feature to be used
+            # todo
             # print(trainx.shape) [32, 50, 36, 1]
             trainx = trainx.to(device)
             trainw = trainw.unsqueeze(-1)
@@ -65,6 +66,7 @@ def main(delay_index=1):
             # print(train.shape) [32, 50, 36, 2]
             trainy = torch.index_select(torch.Tensor(
                 trainy), -1, torch.tensor([delay_index]))
+            # todo
             trainy = trainy.to(device)
             trainy = trainy.permute(0, 3, 1, 2)[:, 0, :, :]
             # print(trainy.shape) [32, 50, 12]
@@ -125,4 +127,5 @@ def main(delay_index=1):
 
 
 if __name__ == '__main__':
+    print("GAT:")
     main()

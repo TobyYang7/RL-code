@@ -2,7 +2,7 @@ import baseline_methods as bm
 import numpy as np
 import pandas as pd
 
-us_delay = np.load('baseline/udata/udelay.npy')
+us_delay = np.load('./udata/udelay.npy')
 print(us_delay.shape)
 # Shape(N, T, F)
 
