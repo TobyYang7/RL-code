@@ -19,7 +19,7 @@ def store_result(yhat, label, i):
     return metrics[0], metrics[2], metrics[1]
 
 
-def main(delay_index=1):  # Select arr or dep
+def main(delay_index=0):  # Select arr or dep
     with open('configs_u.json', 'r') as f:
         config = json.load(f)
 
