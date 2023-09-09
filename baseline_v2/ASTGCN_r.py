@@ -9,14 +9,17 @@ class Spatial_Attention_layer(nn.Module):
     '''
     compute spatial attention scores
     '''
+
     def __init__(self, DEVICE, in_channels, num_of_vertices, num_of_timesteps):
         super(Spatial_Attention_layer, self).__init__()
         self.W1 = nn.Parameter(torch.FloatTensor(num_of_timesteps).to(DEVICE))
-        self.W2 = nn.Parameter(torch.FloatTensor(in_channels, num_of_timesteps).to(DEVICE))
+        self.W2 = nn.Parameter(torch.FloatTensor(
+            in_channels, num_of_timesteps).to(DEVICE))
         self.W3 = nn.Parameter(torch.FloatTensor(in_channels).to(DEVICE))
-        self.bs = nn.Parameter(torch.FloatTensor(1, num_of_vertices, num_of_vertices).to(DEVICE))
-        self.Vs = nn.Parameter(torch.FloatTensor(num_of_vertices, num_of_vertices).to(DEVICE))
-
+        self.bs = nn.Parameter(torch.FloatTensor(
+            1, num_of_vertices, num_of_vertices).to(DEVICE))
+        self.Vs = nn.Parameter(torch.FloatTensor(
+            num_of_vertices, num_of_vertices).to(DEVICE))
 
     def forward(self, x):
         '''
@@ -24,13 +27,16 @@ class Spatial_Attention_layer(nn.Module):
         :return: (B,N,N)
         '''
 
-        lhs = torch.matmul(torch.matmul(x, self.W1), self.W2)  # (b,N,F,T)(T)->(b,N,F)(F,T)->(b,N,T)
+        # (b,N,F,T)(T)->(b,N,F)(F,T)->(b,N,T)
+        lhs = torch.matmul(torch.matmul(x, self.W1), self.W2)
 
-        rhs = torch.matmul(self.W3, x).transpose(-1, -2)  # (F)(b,N,F,T)->(b,N,T)->(b,T,N)
+        # (F)(b,N,F,T)->(b,N,T)->(b,T,N)
+        rhs = torch.matmul(self.W3, x).transpose(-1, -2)
 
         product = torch.matmul(lhs, rhs)  # (b,N,T)(b,T,N) -> (B, N, N)
 
-        S = torch.matmul(self.Vs, torch.sigmoid(product + self.bs))  # (N,N)(B, N, N)->(B,N,N)
+        S = torch.matmul(self.Vs, torch.sigmoid(
+            product + self.bs))  # (N,N)(B, N, N)->(B,N,N)
 
         S_normalized = F.softmax(S, dim=1)
 
@@ -54,7 +60,8 @@ class cheb_conv_withSAt(nn.Module):
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.DEVICE = cheb_polynomials[0].device
-        self.Theta = nn.ParameterList([nn.Parameter(torch.FloatTensor(in_channels, out_channels).to(self.DEVICE)) for _ in range(K)])
+        self.Theta = nn.ParameterList([nn.Parameter(torch.FloatTensor(
+            in_channels, out_channels).to(self.DEVICE)) for _ in range(K)])
 
     def forward(self, x, spatial_attention):
         '''
@@ -71,19 +78,23 @@ class cheb_conv_withSAt(nn.Module):
 
             graph_signal = x[:, :, :, time_step]  # (b, N, F_in)
 
-            output = torch.zeros(batch_size, num_of_vertices, self.out_channels).to(self.DEVICE)  # (b, N, F_out)
+            output = torch.zeros(batch_size, num_of_vertices, self.out_channels).to(
+                self.DEVICE)  # (b, N, F_out)
 
             for k in range(self.K):
 
                 T_k = self.cheb_polynomials[k]  # (N,N)
 
-                T_k_with_at = T_k.mul(spatial_attention)   # (N,N)*(N,N) = (N,N) 多行和为1, 按着列进行归一化
+                # (N,N)*(N,N) = (N,N) 多行和为1, 按着列进行归一化
+                T_k_with_at = T_k.mul(spatial_attention)
 
                 theta_k = self.Theta[k]  # (in_channel, out_channel)
 
-                rhs = T_k_with_at.permute(0, 2, 1).matmul(graph_signal)  # (N, N)(b, N, F_in) = (b, N, F_in) 因为是左乘，所以多行和为1变为多列和为1，即一行之和为1，进行左乘
+                # (N, N)(b, N, F_in) = (b, N, F_in) 因为是左乘，所以多行和为1变为多列和为1，即一行之和为1，进行左乘
+                rhs = T_k_with_at.permute(0, 2, 1).matmul(graph_signal)
 
-                output = output + rhs.matmul(theta_k)  # (b, N, F_in)(F_in, F_out) = (b, N, F_out)
+                # (b, N, F_in)(F_in, F_out) = (b, N, F_out)
+                output = output + rhs.matmul(theta_k)
 
             outputs.append(output.unsqueeze(-1))  # (b, N, F_out, 1)
 
@@ -94,10 +105,13 @@ class Temporal_Attention_layer(nn.Module):
     def __init__(self, DEVICE, in_channels, num_of_vertices, num_of_timesteps):
         super(Temporal_Attention_layer, self).__init__()
         self.U1 = nn.Parameter(torch.FloatTensor(num_of_vertices).to(DEVICE))
-        self.U2 = nn.Parameter(torch.FloatTensor(in_channels, num_of_vertices).to(DEVICE))
+        self.U2 = nn.Parameter(torch.FloatTensor(
+            in_channels, num_of_vertices).to(DEVICE))
         self.U3 = nn.Parameter(torch.FloatTensor(in_channels).to(DEVICE))
-        self.be = nn.Parameter(torch.FloatTensor(1, num_of_timesteps, num_of_timesteps).to(DEVICE))
-        self.Ve = nn.Parameter(torch.FloatTensor(num_of_timesteps, num_of_timesteps).to(DEVICE))
+        self.be = nn.Parameter(torch.FloatTensor(
+            1, num_of_timesteps, num_of_timesteps).to(DEVICE))
+        self.Ve = nn.Parameter(torch.FloatTensor(
+            num_of_timesteps, num_of_timesteps).to(DEVICE))
 
     def forward(self, x):
         '''
@@ -105,14 +119,16 @@ class Temporal_Attention_layer(nn.Module):
         :return: (B, T, T)
         '''
         _, num_of_vertices, num_of_features, num_of_timesteps = x.shape
-        lhs = torch.matmul(torch.matmul(x.permute(0, 3, 2, 1), self.U1), self.U2)
+        lhs = torch.matmul(torch.matmul(
+            x.permute(0, 3, 2, 1), self.U1), self.U2)
         # x:(B, N, F_in, T) -> (B, T, F_in, N)
         # (B, T, F_in, N)(N) -> (B,T,F_in)
         # (B,T,F_in)(F_in,N)->(B,T,N)
 
         rhs = torch.matmul(self.U3, x)  # (F)(B,N,F,T)->(B, N, T)
         product = torch.matmul(lhs, rhs)  # (B,T,N)(B,N,T)->(B,T,T)
-        E = torch.matmul(self.Ve, torch.sigmoid(product + self.be))  # (B, T, T)
+        E = torch.matmul(self.Ve, torch.sigmoid(
+            product + self.be))  # (B, T, T)
 
         E_normalized = F.softmax(E, dim=1)
 
@@ -136,7 +152,8 @@ class cheb_conv(nn.Module):
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.DEVICE = cheb_polynomials[0].device
-        self.Theta = nn.ParameterList([nn.Parameter(torch.FloatTensor(in_channels, out_channels).to(self.DEVICE)) for _ in range(K)])
+        self.Theta = nn.ParameterList([nn.Parameter(torch.FloatTensor(
+            in_channels, out_channels).to(self.DEVICE)) for _ in range(K)])
 
     def forward(self, x):
         '''
@@ -153,7 +170,8 @@ class cheb_conv(nn.Module):
 
             graph_signal = x[:, :, :, time_step]  # (b, N, F_in)
 
-            output = torch.zeros(batch_size, num_of_vertices, self.out_channels).to(self.DEVICE)  # (b, N, F_out)
+            output = torch.zeros(batch_size, num_of_vertices, self.out_channels).to(
+                self.DEVICE)  # (b, N, F_out)
 
             for k in range(self.K):
 
@@ -161,7 +179,8 @@ class cheb_conv(nn.Module):
 
                 theta_k = self.Theta[k]  # (in_channel, out_channel)
 
-                rhs = graph_signal.permute(0, 2, 1).matmul(T_k).permute(0, 2, 1)
+                rhs = graph_signal.permute(
+                    0, 2, 1).matmul(T_k).permute(0, 2, 1)
 
                 output = output + rhs.matmul(theta_k)
 
@@ -174,12 +193,17 @@ class ASTGCN_block(nn.Module):
 
     def __init__(self, DEVICE, in_channels, K, nb_chev_filter, nb_time_filter, time_strides, cheb_polynomials, num_of_vertices, num_of_timesteps):
         super(ASTGCN_block, self).__init__()
-        self.TAt = Temporal_Attention_layer(DEVICE, in_channels, num_of_vertices, num_of_timesteps)
-        self.SAt = Spatial_Attention_layer(DEVICE, in_channels, num_of_vertices, num_of_timesteps)
-        self.cheb_conv_SAt = cheb_conv_withSAt(K, cheb_polynomials, in_channels, nb_chev_filter)
-        self.time_conv = nn.Conv2d(nb_chev_filter, nb_time_filter, kernel_size=(1, 3), stride=(1, time_strides), padding=(0, 1))
-        self.residual_conv = nn.Conv2d(in_channels, nb_time_filter, kernel_size=(1, 1), stride=(1, time_strides))
-        self.ln = nn.LayerNorm(nb_time_filter)  #需要将channel放到最后一个维度上
+        self.TAt = Temporal_Attention_layer(
+            DEVICE, in_channels, num_of_vertices, num_of_timesteps)
+        self.SAt = Spatial_Attention_layer(
+            DEVICE, in_channels, num_of_vertices, num_of_timesteps)
+        self.cheb_conv_SAt = cheb_conv_withSAt(
+            K, cheb_polynomials, in_channels, nb_chev_filter)
+        self.time_conv = nn.Conv2d(nb_chev_filter, nb_time_filter, kernel_size=(
+            1, 3), stride=(1, time_strides), padding=(0, 1))
+        self.residual_conv = nn.Conv2d(
+            in_channels, nb_time_filter, kernel_size=(1, 1), stride=(1, time_strides))
+        self.ln = nn.LayerNorm(nb_time_filter)  # 需要将channel放到最后一个维度上
 
     def forward(self, x):
         '''
@@ -190,7 +214,8 @@ class ASTGCN_block(nn.Module):
         # TAt
         temporal_At = self.TAt(x)  # (b, T, T)
 
-        x_TAt = torch.matmul(x.reshape(batch_size, -1, num_of_timesteps), temporal_At).reshape(batch_size, num_of_vertices, num_of_features, num_of_timesteps)
+        x_TAt = torch.matmul(x.reshape(batch_size, -1, num_of_timesteps), temporal_At).reshape(
+            batch_size, num_of_vertices, num_of_features, num_of_timesteps)
 
         # SAt
         spatial_At = self.SAt(x_TAt)
@@ -200,12 +225,15 @@ class ASTGCN_block(nn.Module):
         # spatial_gcn = self.cheb_conv(x)
 
         # convolution along the time axis
-        time_conv_output = self.time_conv(spatial_gcn.permute(0, 2, 1, 3))  # (b,N,F,T)->(b,F,N,T) 用(1,3)的卷积核去做->(b,F,N,T)
+        # (b,N,F,T)->(b,F,N,T) 用(1,3)的卷积核去做->(b,F,N,T)
+        time_conv_output = self.time_conv(spatial_gcn.permute(0, 2, 1, 3))
 
         # residual shortcut
-        x_residual = self.residual_conv(x.permute(0, 2, 1, 3))  # (b,N,F,T)->(b,F,N,T) 用(1,1)的卷积核去做->(b,F,N,T)
+        # (b,N,F,T)->(b,F,N,T) 用(1,1)的卷积核去做->(b,F,N,T)
+        x_residual = self.residual_conv(x.permute(0, 2, 1, 3))
 
-        x_residual = self.ln(F.relu(x_residual + time_conv_output).permute(0, 3, 2, 1)).permute(0, 2, 3, 1)
+        x_residual = self.ln(
+            F.relu(x_residual + time_conv_output).permute(0, 3, 2, 1)).permute(0, 2, 3, 1)
         # (b,F,N,T)->(b,T,N,F) -ln-> (b,T,N,F)->(b,N,F,T)
 
         return x_residual
@@ -226,11 +254,14 @@ class ASTGCN_submodule(nn.Module):
         '''
 
         super(ASTGCN_submodule, self).__init__()
-        self.BlockList = nn.ModuleList([ASTGCN_block(DEVICE, in_channels, K, nb_chev_filter, nb_time_filter, time_strides, cheb_polynomials, num_of_vertices, len_input)])
+        self.BlockList = nn.ModuleList([ASTGCN_block(DEVICE, in_channels, K, nb_chev_filter,
+                                       nb_time_filter, time_strides, cheb_polynomials, num_of_vertices, len_input)])
 
-        self.BlockList.extend([ASTGCN_block(DEVICE, nb_time_filter, K, nb_chev_filter, nb_time_filter, 1, cheb_polynomials, num_of_vertices, len_input//time_strides) for _ in range(nb_block-1)])
+        self.BlockList.extend([ASTGCN_block(DEVICE, nb_time_filter, K, nb_chev_filter, nb_time_filter,
+                              1, cheb_polynomials, num_of_vertices, len_input//time_strides) for _ in range(nb_block-1)])
 
-        self.final_conv = nn.Conv2d(int(len_input/time_strides), num_for_predict, kernel_size=(1, nb_time_filter))
+        self.final_conv = nn.Conv2d(
+            int(len_input/time_strides), num_for_predict, kernel_size=(1, nb_time_filter))
 
         self.DEVICE = DEVICE
 
@@ -244,7 +275,8 @@ class ASTGCN_submodule(nn.Module):
         for block in self.BlockList:
             x = block(x)
 
-        output = self.final_conv(x.permute(0, 3, 1, 2))[:, :, :, -1].permute(0, 2, 1)
+        output = self.final_conv(x.permute(0, 3, 1, 2))[
+            :, :, :, -1].permute(0, 2, 1)
         # (b,N,F,T)->(b,T,N,F)-conv<1,F>->(b,c_out*T,N,1)->(b,c_out*T,N)->(b,N,T)
 
         return output
@@ -266,11 +298,13 @@ def make_model(DEVICE, nb_block, in_channels, K, nb_chev_filter, nb_time_filter,
     :return:
     '''
     L_tilde = scaled_Laplacian(adj_mx)
-    cheb_polynomials = [torch.from_numpy(i).type(torch.FloatTensor).to(DEVICE) for i in cheb_polynomial(L_tilde, K)]
-    model = ASTGCN_submodule(DEVICE, nb_block, in_channels, K, nb_chev_filter, nb_time_filter, time_strides, cheb_polynomials, num_for_predict, len_input, num_of_vertices)
-    #compute the Chebyshev polynomials for your own graph Laplacian matrix
+    cheb_polynomials = [torch.from_numpy(i).type(torch.FloatTensor).to(
+        DEVICE) for i in cheb_polynomial(L_tilde, K)]
+    model = ASTGCN_submodule(DEVICE, nb_block, in_channels, K, nb_chev_filter, nb_time_filter,
+                             time_strides, cheb_polynomials, num_for_predict, len_input, num_of_vertices)
+    # compute the Chebyshev polynomials for your own graph Laplacian matrix
 
-    #if you have an input time series of length 24 (i.e., 24 hours of data) and you want to predict the next 6 hours, then len_input would be 24 and num_for_predict would be 6.
+    # if you have an input time series of length 24 (i.e., 24 hours of data) and you want to predict the next 6 hours, then len_input would be 24 and num_for_predict would be 6.
     for p in model.parameters():
         if p.dim() > 1:
             nn.init.xavier_uniform_(p)
