@@ -29,13 +29,14 @@ class GraphAttentionLayer(nn.Module):
             output features, [B, N, D].
         """
 
-        h = self.W(inputs) 
+        h = self.W(inputs)
         outputs = torch.bmm(h, h.transpose(1, 2)) * graph.unsqueeze(
-            0)  
+            0)
         outputs.data.masked_fill_(torch.eq(outputs, 0), -float(1e16))
 
-        attention = self.F(outputs, dim=2) 
-        return torch.bmm(attention, h) + self.b 
+        attention = self.F(outputs, dim=2)
+        return torch.bmm(attention, h) + self.b
+
 
 class GATSubNet(nn.Module):
     def __init__(self, in_c, hid_c, out_c, n_heads):
@@ -45,14 +46,14 @@ class GATSubNet(nn.Module):
         self.out_att = GraphAttentionLayer(hid_c * n_heads, out_c)
         self.act = nn.LeakyReLU()
 
-
     def forward(self, inputs, graph):
         """
         :param inputs: [B, N, C]
         :param graph: [N, N]
         :return:
         """
-        outputs = torch.cat([attn(inputs, graph) for attn in self.attention_module], dim=-1)  # [B, N, hid_c * h_head]
+        outputs = torch.cat([attn(inputs, graph)
+                            for attn in self.attention_module], dim=-1)  # [B, N, hid_c * h_head]
         outputs = self.act(outputs)
 
         outputs = self.out_att(outputs, graph)
@@ -66,12 +67,12 @@ class GATNet(nn.Module):
         self.subnet = GATSubNet(in_c, hid_c, out_c, n_heads)
 
     def forward(self, data, device):
-        graph = torch.tensor(data["graph"]).to(device)  
-        flow = data["flow_x"] 
-        flow = flow.to(device) 
+        graph = torch.tensor(data["graph"]).to(device)
+        flow = data["flow_x"]
+        flow = flow.to(device)
 
         B, N = flow.size(0), flow.size(1)
-        flow = flow.view(B, N, -1) 
+        flow = flow.view(B, N, -1)
         """
        上面是将这一段的时间的特征数据摊平做为特征，这种做法实际上忽略了时序上的连续性
        这种做法可行，但是比较粗糙，当然也可以这么做：
@@ -80,10 +81,6 @@ class GATNet(nn.Module):
        然后用nn.ModuleList将SubNet分别拎出来处理，参考多头注意力的处理，同理
 
        """
-        prediction = self.subnet(flow, graph) 
+        prediction = self.subnet(flow, graph)
 
         return prediction
-
-
-
-
