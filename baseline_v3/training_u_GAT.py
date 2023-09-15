@@ -34,7 +34,8 @@ def main(delay_index=1):
     adj, training_data, val_data, training_w, val_w = util.load_data(args.data)
     adj = adj[0]
 
-    model = GATNet(in_c=args.in_len*args.in_channels, hid_c=12, out_c=args.out_len, n_heads=4).to(device)
+    model = GATNet(in_c=args.in_len*args.in_channels, hid_c=12,
+                   out_c=args.out_len, n_heads=4).to(device)
     optimizer, scheduler, scaler, training_data, batch_index, val_index = util.model_preprocess(
         model, args.lr, args.gamma, args.step_size, training_data, val_data, args.in_len, args.out_len)
     label = util.label_loader(val_index, args.in_len,

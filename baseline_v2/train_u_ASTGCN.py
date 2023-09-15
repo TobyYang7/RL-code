@@ -35,7 +35,7 @@ def main(delay_index=1):
     adj = adj[0]
 
     model = make_model('cuda:0', nb_block=2, in_channels=2, K=3, nb_chev_filter=3, nb_time_filter=3,
-                       time_strides=3, adj_mx=adj, num_for_predict=args.out_len, len_input=args.in_len, num_of_vertices=50)
+                       time_strides=3, adj_mx=adj, num_for_predict=args.out_len, len_input=args.in_len, num_of_vertices=50)  # fix
     optimizer, scheduler, scaler, training_data, batch_index, val_index = util.model_preprocess(
         model, args.lr, args.gamma, args.step_size, training_data, val_data, args.in_len, args.out_len)
     label = util.label_loader(val_index, args.in_len,
