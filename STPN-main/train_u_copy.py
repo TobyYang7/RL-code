@@ -60,14 +60,28 @@ parser.add_argument('--period', type=int, default=36,
 args = parser.parse_args()
 
 
-def main():
+def main(model_name = "STPN"):
     device = torch.device(args.device)
     adj, training_data, val_data, test_data, training_w, val_w, test_w = util.load_data(
         args.data)
-    # todo
-    model = STPN(args.h_layers, args.in_channels, args.hidden_channels, args.out_channels, args.emb_size,
-                 args.dropout, args.wemb_size, args.time_d, args.heads, args.support_len,
-                 args.order, args.num_weather, args.use_se, args.use_cov).to(device)
+    # todo: change the model
+    if(model_name == "STPN"):
+        model = STPN(args.h_layers, args.in_channels, args.hidden_channels, args.out_channels, args.emb_size,
+                    args.dropout, args.wemb_size, args.time_d, args.heads, args.support_len,
+                    args.order, args.num_weather, args.use_se, args.use_cov).to(device)
+    elif(model_name == "GWAVE"):
+        model = GWAVE(args.h_layers, args.in_channels, args.hidden_channels, args.out_channels, args.emb_size,
+                    args.dropout, args.wemb_size, args.time_d, args.heads, args.support_len,
+                    args.order, args.num_weather, args.use_se, args.use_cov).to(device)
+    elif(model_name == "STSGCN"):
+        model = STSGCN(args.h_layers, args.in_channels, args.hidden_channels, args.out_channels, args.emb_size,
+                    args.dropout, args.wemb_size, args.time_d, args.heads, args.support_len,
+                    args.order, args.num_weather, args.use_se, args.use_cov).to(device)
+    elif(model_name == "STGCN"):
+        model = STGCN(args.h_layers, args.in_channels, args.hidden_channels, args.out_channels, args.emb_size,
+                    args.dropout, args.wemb_size, args.time_d, args.heads, args.support_len,
+                    args.order, args.num_weather, args.use_se, args.use_cov).to(device)
+
     supports = [torch.tensor(i).to(device) for i in adj]
     optimizer = optim.Adam(model.parameters(), lr=args.lr,
                            weight_decay=args.decay)
@@ -172,4 +186,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(model_name="GWAVE")
