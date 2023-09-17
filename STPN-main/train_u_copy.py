@@ -1,11 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jul 12 16:36:04 2022
-
-@author: AA
-"""
-
-from stpn_rnn import STPN_RNN
 import torch
 import util
 import argparse
@@ -16,7 +8,9 @@ import numpy as np
 
 from baseline_methods import test_error, StandardScaler
 from model import STPN
-
+from GNN_baseline.gwavenet_model import gwnet as GWAVE
+from GNN_baseline.STSGCN import Model as STSGCN
+from GNN_baseline.stgcn_model import STGCN
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--device', type=str, default='cuda:0', help='')

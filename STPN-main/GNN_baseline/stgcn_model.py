@@ -134,5 +134,6 @@ class STGCN(nn.Module):
         out2 = self.block2(out1, A_hat)
         out3 = self.last_temporal(out2)
         out4 = self.fully(out3.reshape((out3.shape[0], out3.shape[1], -1)))
-        out4 = out4.reshape((out3.shape[0], out3.shape[1], self.num_timesteps_out, self.num_features))
+        out4 = out4.reshape(
+            (out3.shape[0], out3.shape[1], self.num_timesteps_out, self.num_features))
         return out4
