@@ -55,32 +55,62 @@ parser.add_argument('--episode', type=int, default=50,
                     help='training episodes')
 parser.add_argument('--period', type=int, default=36,
                     help='periodic for temporal embedding')
+# todo: add args for GWAVE
+parser.add_argument('--num_nodes', type=int,
+                    default=64, help='Number of nodes')
+parser.add_argument('--supports', nargs='+', type=int,
+                    default=[1, 2, 3], help='List of support values')
+parser.add_argument('--gcn_bool', type=bool, default=True,
+                    help='Boolean flag for GCN')
+parser.add_argument('--addaptadj', type=bool, default=True,
+                    help='Boolean flag for adaptive adjacency')
+parser.add_argument('--aptinit', type=str, default=None,
+                    help='Path to adaptive adjacency initialization')
+parser.add_argument('--in_dim', type=int,
+                    default=2, help='Input dimension')
+parser.add_argument('--out_dim', type=int,
+                    default=4, help='Output dimension')
+parser.add_argument('--out_variable', type=int,
+                    default=2, help='Output variable')
+parser.add_argument('--residual_channels', type=int,
+                    default=32, help='Residual channels')
+parser.add_argument('--dilation_channels', type=int,
+                    default=32, help='Dilation channels')
+parser.add_argument('--skip_channels', type=int,
+                    default=256, help='Skip channels')
+parser.add_argument('--end_channels', type=int,
+                    default=512, help='End channels')
+parser.add_argument('--kernel_size', type=int,
+                    default=4, help='Kernel size')
+parser.add_argument('--blocks', type=int,
+                    default=4, help='Number of blocks')
+parser.add_argument('--layers', type=int,
+                    default=2, help='Number of layers')
 
 
 args = parser.parse_args()
 
 
-def main(model_name = "STPN"):
+def main(model_name="STPN"):
     device = torch.device(args.device)
     adj, training_data, val_data, test_data, training_w, val_w, test_w = util.load_data(
         args.data)
     # todo: change the model
-    if(model_name == "STPN"):
+    if (model_name == "STPN"):
         model = STPN(args.h_layers, args.in_channels, args.hidden_channels, args.out_channels, args.emb_size,
-                    args.dropout, args.wemb_size, args.time_d, args.heads, args.support_len,
-                    args.order, args.num_weather, args.use_se, args.use_cov).to(device)
-    elif(model_name == "GWAVE"):
-        model = GWAVE(args.h_layers, args.in_channels, args.hidden_channels, args.out_channels, args.emb_size,
-                    args.dropout, args.wemb_size, args.time_d, args.heads, args.support_len,
-                    args.order, args.num_weather, args.use_se, args.use_cov).to(device)
-    elif(model_name == "STSGCN"):
+                     args.dropout, args.wemb_size, args.time_d, args.heads, args.support_len,
+                     args.order, args.num_weather, args.use_se, args.use_cov).to(device)
+    elif (model_name == "GWAVE"):
+        model = GWAVE(args.device, args.num_nodes, args.dropout, args.supports, args.gcn_bool, args.addaptadj, args.aptinit, args.in_dim, args.out_dim, args.out_variable,
+                      args.residual_channels, args.dilation_channels, args.skip_channels, args.end_channels, args.kernel_size, args.blocks, args.layers).to(device)
+    elif (model_name == "STSGCN"):
         model = STSGCN(args.h_layers, args.in_channels, args.hidden_channels, args.out_channels, args.emb_size,
-                    args.dropout, args.wemb_size, args.time_d, args.heads, args.support_len,
-                    args.order, args.num_weather, args.use_se, args.use_cov).to(device)
-    elif(model_name == "STGCN"):
+                       args.dropout, args.wemb_size, args.time_d, args.heads, args.support_len,
+                       args.order, args.num_weather, args.use_se, args.use_cov).to(device)
+    elif (model_name == "STGCN"):
         model = STGCN(args.h_layers, args.in_channels, args.hidden_channels, args.out_channels, args.emb_size,
-                    args.dropout, args.wemb_size, args.time_d, args.heads, args.support_len,
-                    args.order, args.num_weather, args.use_se, args.use_cov).to(device)
+                      args.dropout, args.wemb_size, args.time_d, args.heads, args.support_len,
+                      args.order, args.num_weather, args.use_se, args.use_cov).to(device)
 
     supports = [torch.tensor(i).to(device) for i in adj]
     optimizer = optim.Adam(model.parameters(), lr=args.lr,
