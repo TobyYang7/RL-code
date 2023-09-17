@@ -13,7 +13,8 @@ from GNN_baseline.STSGCN import Model as STSGCN
 from GNN_baseline.stgcn_model import STGCN
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--device', type=str, default='cuda:0', help='')
+parser.add_argument('--device', type=str, default='mps',
+                    help='')  # todo: change to mps
 parser.add_argument('--data', type=str, default='US', help='data type')
 parser.add_argument("--train_val_ratio", nargs="+",
                     default=[0.7, 0.1], help='train/val/test ratio', type=float)
@@ -59,7 +60,7 @@ parser.add_argument('--period', type=int, default=36,
 parser.add_argument('--num_nodes', type=int,
                     default=64, help='Number of nodes')
 parser.add_argument('--supports', nargs='+', type=int,
-                    default=[1, 2, 3], help='List of support values')
+                    default=None, help='List of support values')
 parser.add_argument('--gcn_bool', type=bool, default=True,
                     help='Boolean flag for GCN')
 parser.add_argument('--addaptadj', type=bool, default=True,
@@ -86,6 +87,7 @@ parser.add_argument('--blocks', type=int,
                     default=4, help='Number of blocks')
 parser.add_argument('--layers', type=int,
                     default=2, help='Number of layers')
+# todo: add args for STSGCN
 
 
 args = parser.parse_args()
@@ -165,7 +167,7 @@ def main(model_name="STPN"):
             trainto = torch.Tensor(trainto).to(device)
             model.train()
             optimizer.zero_grad()
-            output = model(trainx, trainti, supports, trainto, trainw)
+            output = model(trainx, trainti, supports, trainto, trainw)  # fix
             loss = util.masked_rmse(output, trainy, 0.0)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 3)
@@ -216,4 +218,5 @@ def main(model_name="STPN"):
 
 
 if __name__ == "__main__":
-    main(model_name="GWAVE")
+    model_name = "GWAVE"
+    main(model_name)
