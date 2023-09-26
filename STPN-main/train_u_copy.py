@@ -218,5 +218,5 @@ def main(model_name="STPN"):
 
 
 if __name__ == "__main__":
-    model_name = "GWAVE"
+    model_name = "GWAVE"  # todo: change the model name
     main(model_name)

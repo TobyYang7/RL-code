@@ -53,11 +53,11 @@ class learnEmbedding(nn.Module):
     def __init__(self, d_model):
         super(learnEmbedding, self).__init__()
         self.factor = nn.parameter.Parameter(
-            torch.randn(1,), requires_grad=True).to('cuda')
+            torch.randn(1,), requires_grad=True).to('mps')
         self.d_model = d_model
 
     def forward(self, x):
-        div = torch.arange(0, self.d_model, 2).to('cuda')
+        div = torch.arange(0, self.d_model, 2).to('mps')
         div_term = torch.exp(div * self.factor)
         if len(x.shape) == 2:
             v1 = torch.sin(torch.einsum('bt, f->btf', x, div_term))
@@ -69,7 +69,7 @@ class learnEmbedding(nn.Module):
 
 
 class ATT(nn.Module):
-    def __init__(self, c_in, d=16, device='cuda'):
+    def __init__(self, c_in, d=16, device='mps'):
         super(ATT, self).__init__()
         self.d = d
         self.qm = nn.Linear(in_features=c_in, out_features=d, bias=False)
